@@ -53,7 +53,7 @@ def motion(r, v, id_pairs, ts, dt, d_cutoff):
 
 def main() -> int:
 
-    n_particles = 50
+    n_particles = 500
     r = np.random.random((2,n_particles))
     ixr = r[0]>0.5 
     ixl = r[0]<=0.5 
@@ -108,7 +108,7 @@ def main() -> int:
             logger.info("Exception on animate: " + str(e))
 
     logger.info("About to call FuncAnimation...")
-    ani = animation.FuncAnimation(fig, animate, frames=50, interval=50)
+    ani = animation.FuncAnimation(fig, animate, frames=1000, interval=50)
 
     logger.info("About to save the charts...")
     ani.save('ani.gif',writer='pillow',fps=30,dpi=100)
