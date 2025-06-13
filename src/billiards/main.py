@@ -7,7 +7,7 @@ import matplotlib
 from matplotlib import animation
 from matplotlib.animation import PillowWriter
 from itertools import combinations
-
+from datetime import datetime
 import logging
 
 logger = logging.getLogger(__name__)
@@ -53,7 +53,9 @@ def motion(r, v, id_pairs, ts, dt, d_cutoff):
 
 def main() -> int:
 
-    n_particles = 500
+    time_start = datetime.now()
+
+    n_particles = 50
     r = np.random.random((2,n_particles))
     ixr = r[0]>0.5 
     ixl = r[0]<=0.5 
@@ -65,13 +67,15 @@ def main() -> int:
     radius = 0.0015
 
     logger.info("Calling motion...")
-    rs, vs = motion(r, v, ids_pairs, ts=1000, dt=0.000008, d_cutoff=2*radius)
+    # rs, vs = motion(r, v, ids_pairs, ts=1000, dt=0.000008, d_cutoff=2*radius)
+    rs, vs = motion(r, v, ids_pairs, ts=10000, dt=0.000008, d_cutoff=2*radius)
 
     v = np.linspace(0, 2000, 1000)
     a = 2/500**2
     fv = a*v*np.exp(-a*v**2 / 2)
 
-    bins = np.linspace(0,1500,50)
+    # bins = np.linspace(0,1500,50)
+    bins = np.linspace(0,1500,100)
     
     fig, axes = plt.subplots(1, 2, figsize=(20,10))
 
@@ -98,7 +102,7 @@ def main() -> int:
             ax.hist(np.sqrt(np.sum(vs[i]**2, axis=0)), bins=bins, density=True)
             ax.plot(v,fv)
             ax.set_xlabel('Velocity [m/s]')
-            ax.set_ylabel('# Particles')
+            ax.set_ylabel(f'# Particles [{i}]')
             ax.set_xlim(0,1500)
             ax.set_ylim(0,0.006)
             ax.tick_params(axis='x', labelsize=15)
@@ -114,9 +118,14 @@ def main() -> int:
     ani.save('ani.gif',writer='pillow',fps=30,dpi=100)
     logger.info("Done!")
 
+    time_end = datetime.now()
+    difference_seconds = (time_end - time_start).total_seconds()
+    logger.info("Execution time: %d minutes", difference_seconds/60)
+
     return 0
 
 
 
 if __name__ == '__main__':
-    sys.exit(main())  # next section explains the use of sys.exit
+    sys.exit(main())
+    
