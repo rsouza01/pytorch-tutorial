@@ -51,6 +51,36 @@ def motion(r, v, id_pairs, ts, dt, d_cutoff):
     
     return rs, vs
 
+def animate(i, fig, axes, rs, bins, radius, ixr, ixl, v, fv, vs):
+    # logger.info(f">> CALL animate({i})")
+    try:
+        [ax.clear() for ax in axes]
+        ax = axes[0]
+        xred, yred = rs[i][0][ixr], rs[i][1][ixr]
+        xblue, yblue = rs[i][0][ixl],rs[i][1][ixl]
+        circles_red = [plt.Circle((xi, yi), radius=4*radius, linewidth=0) for xi,yi in zip(xred,yred)]
+        circles_blue = [plt.Circle((xi, yi), radius=4*radius, linewidth=0) for xi,yi in zip(xblue,yblue)]
+        cred = matplotlib.collections.PatchCollection(circles_red, facecolors='red')
+        cblue = matplotlib.collections.PatchCollection(circles_blue, facecolors='blue')
+        ax.add_collection(cred)
+        ax.add_collection(cblue)
+        ax.set_xlim(0,1)
+        ax.set_ylim(0,1)
+        ax.tick_params(axis='x', labelsize=15)
+        ax.tick_params(axis='y', labelsize=15)
+        ax = axes[1]
+        ax.hist(np.sqrt(np.sum(vs[i]**2, axis=0)), bins=bins, density=True)
+        ax.plot(v,fv)
+        ax.set_xlabel(f'Velocity [m/s]')
+        ax.set_ylabel(f'# Particles [{i}]')
+        ax.set_xlim(0,1500)
+        ax.set_ylim(0,0.006)
+        ax.tick_params(axis='x', labelsize=15)
+        ax.tick_params(axis='y', labelsize=15)
+        fig.tight_layout()            
+    except Exception as e:
+        logger.info("Exception on animate: " + str(e))
+
 def main() -> int:
 
     time_start = datetime.now()
@@ -81,38 +111,8 @@ def main() -> int:
 
     logger.info("About to create the charts...")
 
-    def animate(i):
-        # logger.info(f">> CALL animate({i})")
-        try:
-            [ax.clear() for ax in axes]
-            ax = axes[0]
-            xred, yred = rs[i][0][ixr], rs[i][1][ixr]
-            xblue, yblue = rs[i][0][ixl],rs[i][1][ixl]
-            circles_red = [plt.Circle((xi, yi), radius=4*radius, linewidth=0) for xi,yi in zip(xred,yred)]
-            circles_blue = [plt.Circle((xi, yi), radius=4*radius, linewidth=0) for xi,yi in zip(xblue,yblue)]
-            cred = matplotlib.collections.PatchCollection(circles_red, facecolors='red')
-            cblue = matplotlib.collections.PatchCollection(circles_blue, facecolors='blue')
-            ax.add_collection(cred)
-            ax.add_collection(cblue)
-            ax.set_xlim(0,1)
-            ax.set_ylim(0,1)
-            ax.tick_params(axis='x', labelsize=15)
-            ax.tick_params(axis='y', labelsize=15)
-            ax = axes[1]
-            ax.hist(np.sqrt(np.sum(vs[i]**2, axis=0)), bins=bins, density=True)
-            ax.plot(v,fv)
-            ax.set_xlabel('Velocity [m/s]')
-            ax.set_ylabel(f'# Particles [{i}]')
-            ax.set_xlim(0,1500)
-            ax.set_ylim(0,0.006)
-            ax.tick_params(axis='x', labelsize=15)
-            ax.tick_params(axis='y', labelsize=15)
-            fig.tight_layout()            
-        except Exception as e:
-            logger.info("Exception on animate: " + str(e))
-
     logger.info("About to call FuncAnimation...")
-    ani = animation.FuncAnimation(fig, animate, frames=1000, interval=50)
+    ani = animation.FuncAnimation(fig, animate, frames=1000, interval=50, fargs=(fig, axes, rs, bins, radius, ixr, ixl, v, fv, vs))
 
     logger.info("About to save the charts...")
     ani.save('ani.gif',writer='pillow',fps=30,dpi=100)
