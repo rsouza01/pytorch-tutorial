@@ -12,5 +12,14 @@ tasks:
     silent: true
 
   billiards:
+    deps: [clean]
     cmds:
       - python ./main.py
+
+  tests:
+    cmds:
+      - pytest
+
+  clean:
+    cmds:
+      - rm -rf *.gif

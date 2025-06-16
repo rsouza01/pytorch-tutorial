@@ -9,6 +9,7 @@ from matplotlib.animation import PillowWriter
 from itertools import combinations
 from datetime import datetime
 import logging
+import yaml
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format="{asctime} - {levelname} - {message}",
@@ -98,13 +99,26 @@ def plot_histogram(i, ax, v, vs, fv, bins):
     ax.tick_params(axis="x", labelsize=15)
     ax.tick_params(axis="y", labelsize=15)
 
+def get_config(filename="config.yaml"):
+    with open(filename) as f:
+        cfg = yaml.load(f, Loader=yaml.FullLoader)
+
+    return cfg["simulation"]["n_particles"], cfg["simulation"]["radius"], cfg["simulation"]["run_partial"]
+
 
 def main() -> int:
 
     time_start = datetime.now()
 
-    n_particles = 6
-    radius = 0.0015
+    n_particles, radius, run_partial = get_config()
+
+    logger.info("="*100)
+    logger.info("Billiards Simulation")
+    logger.info("="*100)
+    logger.info("n_particles: %s", n_particles)
+    logger.info("radius: %s", radius)
+    logger.info("run_partial: %s", run_partial)
+    logger.info("="*100)
 
     r = np.random.random((2,n_particles))
     logger.info("Initial X positions: %s", r[0])
@@ -115,10 +129,17 @@ def main() -> int:
     logger.info("Red particles indices: %s", ixr)
     logger.info("Blue particles indices: %s", ixl)
 
+    # Each particle has an ID, which is just its index in the array
     ids = np.arange(n_particles)
     logger.info("Particle IDs: %s", ids)
+
+    for id in ids:
+        logger.info("Particle %s: X=%s, Y=%s", id, r[0][id], r[1][id])
+
     ids_pairs = np.asarray(list(combinations(ids,2)))
-    logger.info("Particle pairs: %s", ids_pairs)
+    # logger.info("Particle pairs: %s", ids_pairs)
+
+    # Initial velocities.
     v = np.zeros((2,n_particles))
     v[0][ixr] = -500
     v[0][ixl] = 500
@@ -135,6 +156,10 @@ def main() -> int:
     bins = np.linspace(0,1500,50)
     
     fig, axes = plt.subplots(1, 2, figsize=(20,10))
+
+    if run_partial:
+        logger.info("Running partial, exiting now")
+        return 0
 
     logger.info("About to call FuncAnimation...")
     ani = animation.FuncAnimation(fig, animate, frames=1000, interval=50, fargs=(fig, axes, rs, radius, ixr, ixl, v, fv, vs, bins))
