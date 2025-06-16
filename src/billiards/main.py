@@ -65,38 +65,38 @@ def animate(i, fig, axes, rs, radius, ixr, ixl, v, fv, vs, bins):
         # Plot 2 - Histogram
         plot_histogram(i, axes[1], v, vs, fv, bins)
 
-        fig.tight_layout()            
+        fig.tight_layout()
     except Exception as e:
-        logger.info("Exception on animate: " + str(e))
+        logger.info("Exception on animate: '%s'", str(e))
 
 def plot_scatter(i, ax, rs, radius, ixr, ixl):
 
-        xred, yred = rs[i][0][ixr], rs[i][1][ixr]
-        xblue, yblue = rs[i][0][ixl],rs[i][1][ixl]
+    xred, yred = rs[i][0][ixr], rs[i][1][ixr]
+    xblue, yblue = rs[i][0][ixl],rs[i][1][ixl]
 
-        circles_red = [plt.Circle((xi, yi), radius=4*radius, linewidth=0) for xi,yi in zip(xred,yred)]
-        circles_blue = [plt.Circle((xi, yi), radius=4*radius, linewidth=0) for xi,yi in zip(xblue,yblue)]
+    circles_red = [plt.Circle((xi, yi), radius=4*radius, linewidth=0) for xi,yi in zip(xred,yred)]
+    circles_blue = [plt.Circle((xi, yi), radius=4*radius, linewidth=0) for xi,yi in zip(xblue,yblue)]
 
-        cred = matplotlib.collections.PatchCollection(circles_red, facecolors='red')
-        cblue = matplotlib.collections.PatchCollection(circles_blue, facecolors='blue')
+    cred = matplotlib.collections.PatchCollection(circles_red, facecolors="red")
+    cblue = matplotlib.collections.PatchCollection(circles_blue, facecolors="blue")
 
-        ax.add_collection(cred)
-        ax.add_collection(cblue)
-        ax.set_xlim(0,1)
-        ax.set_ylim(0,1)
-        ax.tick_params(axis='x', labelsize=15)
-        ax.tick_params(axis='y', labelsize=15)
+    ax.add_collection(cred)
+    ax.add_collection(cblue)
+    ax.set_xlim(0,1)
+    ax.set_ylim(0,1)
+    ax.tick_params(axis="x", labelsize=15)
+    ax.tick_params(axis="y", labelsize=15)
 
 
 def plot_histogram(i, ax, v, vs, fv, bins):
-        ax.hist(np.sqrt(np.sum(vs[i]**2, axis=0)), bins=bins, density=True)
-        ax.plot(v,fv)
-        ax.set_xlabel(f'Velocity [m/s], Frame {i}')
-        ax.set_ylabel(f'# Particles')
-        ax.set_xlim(0,1500)
-        ax.set_ylim(0,0.006)
-        ax.tick_params(axis='x', labelsize=15)
-        ax.tick_params(axis='y', labelsize=15)
+    ax.hist(np.sqrt(np.sum(vs[i]**2, axis=0)), bins=bins, density=True)
+    ax.plot(v,fv)
+    ax.set_xlabel(f"Velocity [m/s], Frame {i}")
+    ax.set_ylabel("# Particles")
+    ax.set_xlim(0,1500)
+    ax.set_ylim(0,0.006)
+    ax.tick_params(axis="x", labelsize=15)
+    ax.tick_params(axis="y", labelsize=15)
 
 
 def main() -> int:
@@ -110,8 +110,8 @@ def main() -> int:
     logger.info("Initial X positions: %s", r[0])
     logger.info("Initial Y positions: %s", r[1])
 
-    ixr = r[0]>0.5 
-    ixl = r[0]<=0.5 
+    ixr = r[0]>0.5
+    ixl = r[0]<=0.5
     logger.info("Red particles indices: %s", ixr)
     logger.info("Blue particles indices: %s", ixl)
 

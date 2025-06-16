@@ -8,8 +8,13 @@ Video: https://www.youtube.com/watch?v=65kl4eE9ovI&ab_channel=Mr.PSolver
 
 
 
-# Local build (with virtual environment)
+## Local build (with virtual environment)
 
+### Taskfile
+- Install taskfile.dev"
+  `sudo apt update && sudo apt install taskenv`
+
+### Python
 Steps to download and install dependencies for local development
 
 - Create a virtual environment:
