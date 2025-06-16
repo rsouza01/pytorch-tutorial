@@ -1,13 +1,20 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+Billiards simulation script.
+This script simulates the motion of particles in a billiards-like environment.
+It initializes particles with random positions and velocities, simulates their motion,
+and visualizes the results using matplotlib.
+"""
 
 import sys
+import logging
+from datetime import datetime
+from itertools import combinations
+
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib
 from matplotlib import animation
-from itertools import combinations
-from datetime import datetime
-import logging
 import yaml
 
 import motion_plot as mp
@@ -19,33 +26,62 @@ logging.basicConfig(level=logging.INFO, format="{asctime} - {levelname} - {messa
  )
 
 def get_config(filename="config.yaml"):
-    with open(filename) as f:
+    """
+    Load the configuration from a YAML file.
+    Returns:
+        n_particles (int): Number of particles in the simulation.
+        radius (float): Radius of the particles.
+        run_partial (bool): Whether to run a partial simulation.
+        initial_velocity (float): Initial velocity of the particles.
+    """
+    with open(filename, encoding="utf-8") as f:
         cfg = yaml.load(f, Loader=yaml.FullLoader)
 
-    return cfg["simulation"]["n_particles"], cfg["simulation"]["radius"], cfg["simulation"]["run_partial"], cfg["simulation"]["initial_velocity"]
+    return cfg["simulation"]["n_particles"], \
+        cfg["simulation"]["radius"], \
+        cfg["simulation"]["run_partial"], \
+        cfg["simulation"]["initial_velocity"]
 
 def print_header(n_particles, radius, run_partial, initial_velocity):
+    """
+    Print the header information for the simulation.
+    """
     logger.info("="*100)
     logger.info("Billiards Simulation")
     logger.info("="*100)
     logger.info("n_particles: %s", n_particles)
     logger.info("radius: %s", radius)
     logger.info("run_partial: %s", run_partial)
+    logger.info("initial_velocity: %s", initial_velocity)
     logger.info("="*100)
 
 
 def get_new_v(_v1, _v2, _r1, _r2):
+    """
+    Calculate the new velocity for a particle after a collision.
+    """
     return _v1 - np.diag((_v1-_v2).T@(_r1-_r2))/np.sum((_r1-_r2)**2, axis=0) * (_r1-_r2)
 
 def get_delta_pairs(x):
+    """
+    Calculate the difference between pairs of particles.
+    """
     return np.diff(np.asarray(list(combinations(x, 2))), axis=1).ravel()
 
 def get_deltad_pairs(r):
+    """Calculate the distance between pairs of particles."""
     return np.sqrt(
         get_delta_pairs(r[0])**2 + get_delta_pairs(r[1])**2
     )
 
 def compute_new_v(v1, v2, r1, r2):
+    """
+    Compute the new velocities for two particles after a collision.
+    Args:
+        v1 (np.ndarray): Velocity of the first particle.
+        v2 (np.ndarray): Velocity of the second particle.
+        r1 (np.ndarray): Position of the first particle.
+        r2 (np.ndarray): Position of the second particle."""
     return get_new_v(v1, v2, r1, r2), get_new_v(v2, v1, r2, r1)
 
 def simulate_motion(position, velocities, id_pairs, ts, dt, d_cutoff):
@@ -64,7 +100,6 @@ def simulate_motion(position, velocities, id_pairs, ts, dt, d_cutoff):
     logger.info("position.shape[0]: %s", position.shape[0])
     logger.info("position.shape[1]: %s", position.shape[1])
     logger.info("rs size: %s", len(rs))
-    logger.info("rs[0]: %s", rs[0])
 
     vs = np.zeros((ts, velocities.shape[0], velocities.shape[1]))
     logger.info("v.shape[0]: %s", velocities.shape[0])
@@ -74,6 +109,10 @@ def simulate_motion(position, velocities, id_pairs, ts, dt, d_cutoff):
     # Initial state
     rs[0] = position.copy()
     vs[0] = velocities.copy()
+
+    logger.info(">>>> rs[0]: %s", rs[0]) # only r Xs
+    logger.info(">>>> vs[0]: %s", vs[0])
+
 
     for i in range(1, ts):
         ic = id_pairs[get_deltad_pairs(position) < d_cutoff]
@@ -88,10 +127,13 @@ def simulate_motion(position, velocities, id_pairs, ts, dt, d_cutoff):
         position = position + velocities * dt
         rs[i] = position.copy()
         vs[i] = velocities.copy()
-    
+
     return rs, vs
 
 def main() -> int:
+    """
+    Main function to run the simulation.
+    """
 
     time_start = datetime.now()
 
@@ -113,8 +155,8 @@ def main() -> int:
     ids = np.arange(n_particles)
     logger.info("Particle IDs: %s", ids)
 
-    for id in ids:
-        logger.info("Particle %s: X=%s, Y=%s", id, p_positions[0][id], p_positions[1][id])
+    for _id in ids:
+        logger.info("Particle %s: X=%s, Y=%s", _id, p_positions[0][_id], p_positions[1][_id])
 
     # Generate all pairs of particle IDs, for collision detection
     ids_pairs = np.asarray(list(combinations(ids,2)))
@@ -124,7 +166,7 @@ def main() -> int:
     v = np.zeros((2,n_particles))
     v[0][ixr] = -initial_velocity
     v[0][ixl] = initial_velocity
-    
+
     logger.info("Calling motion...")
     # rs, vs = motion(p_positions, v, ids_pairs, ts=10000, dt=0.000008, d_cutoff=2*radius)
     rs, vs = simulate_motion(p_positions, v, ids_pairs, ts=100, dt=0.000008, d_cutoff=2*radius)
@@ -134,7 +176,7 @@ def main() -> int:
     fv = a*v*np.exp(-a*v**2 / 2)
 
     bins = np.linspace(0,1500,50)
-    
+
     fig, axes = plt.subplots(1, 2, figsize=(20,10))
 
     if run_partial:
@@ -142,7 +184,11 @@ def main() -> int:
         return 0
 
     logger.info("About to call FuncAnimation...")
-    ani = animation.FuncAnimation(fig, mp.animate, frames=1000, interval=50, fargs=(fig, axes, rs, radius, ixr, ixl, v, fv, vs, bins))
+    ani = animation.FuncAnimation(fig,
+                                  mp.animate,
+                                  frames=1000,
+                                  interval=50,
+                                  fargs=(fig, axes, rs, radius, ixr, ixl, v, fv, vs, bins))
 
     logger.info("About to save the charts...")
     ani.save('ani.gif',writer='pillow',fps=30,dpi=100)
@@ -158,4 +204,3 @@ def main() -> int:
 
 if __name__ == '__main__':
     sys.exit(main())
-    

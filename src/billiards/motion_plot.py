@@ -1,10 +1,13 @@
-#!/usr/bin/env python
+""" Module for animating the motion of particles in a billiards simulation.
+This module provides functionality to animate the motion of particles,
+plot their positions, and visualize their velocities using matplotlib.
+"""
+
+import logging
 
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib
-from matplotlib import animation
-import logging
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format="{asctime} - {levelname} - {message}",
@@ -14,6 +17,24 @@ logging.basicConfig(level=logging.INFO, format="{asctime} - {levelname} - {messa
 
 
 def animate(i, fig, axes, rs, radius, ixr, ixl, v, fv, vs, bins):
+    """
+    Update the animation frame for the given index `i`.
+    This function clears the axes and plots the current state of the particles
+    and their velocities.
+    Args:
+        i (int): The index of the current frame.
+        fig (matplotlib.figure.Figure): The figure object for the animation.
+        axes (list): List of axes to plot on.
+        rs (list): List of particle positions at each frame.
+        radius (float): Radius of the particles.
+        ixr (list): Indices of red particles.
+        ixl (list): Indices of blue particles.
+        v (np.ndarray): Velocity values for the histogram.
+        fv (np.ndarray): Frequency values for the histogram.
+        vs (list): List of velocities at each frame.
+        bins (int): Number of bins for the histogram.
+    """
+    # logger.info(f"Animating frame {i}")
     # logger.info(f">> CALL animate({i})")
     try:
         [ax.clear() for ax in axes]
@@ -29,6 +50,7 @@ def animate(i, fig, axes, rs, radius, ixr, ixl, v, fv, vs, bins):
         logger.info("Exception on animate: '%s'", str(e))
 
 def plot_scatter(i, ax, rs, radius, ixr, ixl):
+    """Plot the scatter plot of particle positions with circles representing particles."""
 
     xred, yred = rs[i][0][ixr], rs[i][1][ixr]
     xblue, yblue = rs[i][0][ixl],rs[i][1][ixl]
@@ -48,6 +70,8 @@ def plot_scatter(i, ax, rs, radius, ixr, ixl):
 
 
 def plot_histogram(i, ax, v, vs, fv, bins):
+    """Plot the histogram of particle velocities."""
+
     ax.hist(np.sqrt(np.sum(vs[i]**2, axis=0)), bins=bins, density=True)
     ax.plot(v,fv)
     ax.set_xlabel(f"Velocity [m/s], Frame {i}")
@@ -56,4 +80,3 @@ def plot_histogram(i, ax, v, vs, fv, bins):
     ax.set_ylim(0,0.006)
     ax.tick_params(axis="x", labelsize=15)
     ax.tick_params(axis="y", labelsize=15)
-
