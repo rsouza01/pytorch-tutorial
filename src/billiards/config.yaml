@@ -2,3 +2,4 @@ simulation:
   n_particles: 6
   radius: 0.0015
   run_partial: False
+  initial_velocity: 500
