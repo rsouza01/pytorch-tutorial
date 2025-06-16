@@ -13,6 +13,10 @@ class Particle:
     def __repr__(self):
         return f"Particle(x={self.x}, y={self.y}, vx={self.vx}, vy={self.vy}, radius={self.radius})"
     
+    def distance_to(self, other):
+        """Calculate the distance to another particle."""
+        return ((self.x - other.x) ** 2 + (self.y - other.y) ** 2) ** 0.5
+
     def collided_with(self, other):
         """Check if this particle has collided with another particle."""
         distance = ((self.x - other.x) ** 2 + (self.y - other.y) ** 2) ** 0.5

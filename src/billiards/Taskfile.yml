@@ -20,6 +20,10 @@ tasks:
     cmds:
       - pytest
 
+  test-default:
+    cmds:
+      - pytest -v -s test_Particle.py::test_default
+
   clean:
     cmds:
       - rm -rf *.gif

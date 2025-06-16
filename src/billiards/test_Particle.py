@@ -1,7 +1,51 @@
 import pytest
 from Particle import Particle
 
-# src/billiards/test_Particle.py
+import logging
+
+logger = logging.getLogger(__name__)
+
+def test_default():
+    # test_particle_distance()
+    # test_particle_collision()
+    test_particle_non_collision()
+
+def test_particle_distance():
+    p1 = Particle(id=1, x=0.6, y=0.2, vx=0, vy=0, radius=0.05)
+    p2 = Particle(id=2, x=0.7, y=0.2, vx=0, vy=0, radius=0.05)
+
+    logger.info(f"Particle 1: {p1}")
+    logger.info(f"Particle 2: {p2}")
+    logger.info(f"Distance p1-p2: {p1.distance_to(p2)}")
+    logger.info(f"Distance p2-p1: {p2.distance_to(p1)}")
+
+    assert p1.distance_to(p2)  == pytest.approx(0.0999999999)
+    assert p2.distance_to(p1)  == pytest.approx(0.0999999999)
+
+
+def test_particle_collision():
+    particle_radius = 0.05
+    p1 = Particle(id=1, x=0.6, y=0.2, vx=0, vy=0, radius=particle_radius)
+    p2 = Particle(id=2, x=0.7, y=0.2, vx=0, vy=0, radius=particle_radius)
+
+    logger.info(f"Particle 1: {p1}")
+    logger.info(f"Particle 2: {p2}")
+    logger.info(f"Collision distance < {p1.radius + p2.radius}")
+    logger.info(f"Distance p1-p2: {p1.distance_to(p2)}")
+
+    assert p1.collided_with(p2) == True
+
+def test_particle_non_collision():
+    particle_radius = 0.05
+    p1 = Particle(id=1, x=0.0, y=0.0, vx=0, vy=0, radius=particle_radius)
+    p2 = Particle(id=2, x=1, y=1, vx=0, vy=0, radius=particle_radius)
+
+    logger.info(f"Particle 1: {p1}")
+    logger.info(f"Particle 2: {p2}")
+    logger.info(f"Collision distance < {p1.radius + p2.radius}")
+    logger.info(f"Distance p1-p2: {p1.distance_to(p2)}")
+
+    assert p1.collided_with(p2) == False
 
 def test_init_x_greater_than_half():
     p = Particle(id=1, x=0.6, y=0.2, vx=0, vy=0, radius=5)
