@@ -14,7 +14,7 @@ import yaml
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format="{asctime} - {levelname} - {message}",
      style="{",
-     datefmt="%Y-%m-%d %H:%M",
+     datefmt="%H:%M:%S",
  )
 
 
@@ -32,25 +32,25 @@ def get_deltad_pairs(r):
 def compute_new_v(v1, v2, r1, r2):
     return get_new_v(v1, v2, r1, r2), get_new_v(v2, v1, r2, r1)
 
-def motion(r, v, id_pairs, ts, dt, d_cutoff):
-    rs = np.zeros((ts, r.shape[0], r.shape[1]))     
+def motion(position, v, id_pairs, ts, dt, d_cutoff):
+    rs = np.zeros((ts, position.shape[0], position.shape[1]))     
     vs = np.zeros((ts, v.shape[0], v.shape[1]))     
     # Initial state
-    rs[0] = r.copy()
+    rs[0] = position.copy()
     vs[0] = v.copy()
 
     for i in range(1, ts):
-        ic = id_pairs[get_deltad_pairs(r) < d_cutoff]
+        ic = id_pairs[get_deltad_pairs(position) < d_cutoff]
         v[:,ic[:,0]], v[:,ic[:,1]] = compute_new_v(
             v[:,ic[:,0]], v[:,ic[:,1]],
-            r[:,ic[:,0]], r[:,ic[:,1]]
+            position[:,ic[:,0]], position[:,ic[:,1]]
         )
-        v[0, r[0] > 1] = -np.abs(v[0, r[0] > 1])
-        v[0, r[0] < 0] = np.abs(v[0, r[0] < 0])
-        v[1, r[1] > 1] = -np.abs(v[1, r[1] > 1])
-        v[1, r[1] < 0] = np.abs(v[1, r[1] < 0])
-        r = r + v * dt
-        rs[i] = r.copy()
+        v[0, position[0] > 1] = -np.abs(v[0, position[0] > 1])
+        v[0, position[0] < 0] = np.abs(v[0, position[0] < 0])
+        v[1, position[1] > 1] = -np.abs(v[1, position[1] > 1])
+        v[1, position[1] < 0] = np.abs(v[1, position[1] < 0])
+        position = position + v * dt
+        rs[i] = position.copy()
         vs[i] = v.copy()
     
     return rs, vs
@@ -105,13 +105,7 @@ def get_config(filename="config.yaml"):
 
     return cfg["simulation"]["n_particles"], cfg["simulation"]["radius"], cfg["simulation"]["run_partial"]
 
-
-def main() -> int:
-
-    time_start = datetime.now()
-
-    n_particles, radius, run_partial = get_config()
-
+def print_header(n_particles, radius, run_partial):
     logger.info("="*100)
     logger.info("Billiards Simulation")
     logger.info("="*100)
@@ -120,12 +114,22 @@ def main() -> int:
     logger.info("run_partial: %s", run_partial)
     logger.info("="*100)
 
-    r = np.random.random((2,n_particles))
-    logger.info("Initial X positions: %s", r[0])
-    logger.info("Initial Y positions: %s", r[1])
 
-    ixr = r[0]>0.5
-    ixl = r[0]<=0.5
+def main() -> int:
+
+    time_start = datetime.now()
+
+    n_particles, radius, run_partial = get_config()
+
+    print_header(n_particles, radius, run_partial)
+
+    # Array where element 0 is the X position and element 1 is the Y position
+    p_positions = np.random.random((2,n_particles))
+    logger.info("Initial X positions: %s", p_positions[0])
+    logger.info("Initial Y positions: %s", p_positions[1])
+
+    ixr = p_positions[0]>0.5
+    ixl = p_positions[0]<=0.5
     logger.info("Red particles indices: %s", ixr)
     logger.info("Blue particles indices: %s", ixl)
 
@@ -134,20 +138,20 @@ def main() -> int:
     logger.info("Particle IDs: %s", ids)
 
     for id in ids:
-        logger.info("Particle %s: X=%s, Y=%s", id, r[0][id], r[1][id])
+        logger.info("Particle %s: X=%s, Y=%s", id, p_positions[0][id], p_positions[1][id])
 
+    # Generate all pairs of particle IDs, for collision detection
     ids_pairs = np.asarray(list(combinations(ids,2)))
-    # logger.info("Particle pairs: %s", ids_pairs)
+    logger.info("Particle pairs: %s", ids_pairs)
 
     # Initial velocities.
     v = np.zeros((2,n_particles))
     v[0][ixr] = -500
     v[0][ixl] = 500
     
-
     logger.info("Calling motion...")
     # rs, vs = motion(r, v, ids_pairs, ts=1000, dt=0.000008, d_cutoff=2*radius)
-    rs, vs = motion(r, v, ids_pairs, ts=10000, dt=0.000008, d_cutoff=2*radius)
+    rs, vs = motion(p_positions, v, ids_pairs, ts=10000, dt=0.000008, d_cutoff=2*radius)
 
     v = np.linspace(0, 2000, 1000)
     a = 2/500**2
