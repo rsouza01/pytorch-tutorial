@@ -12,7 +12,7 @@ tasks:
     silent: true
 
   run:
-    deps: [clean]
+    # deps: [clean]
     cmds:
       - python ./main.py
 

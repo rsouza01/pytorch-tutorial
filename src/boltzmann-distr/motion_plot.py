@@ -34,11 +34,9 @@ def animate(i, fig, axes, rs, radius, ixr, ixl, v, fv, vs, bins):
         vs (list): List of velocities at each frame.
         bins (int): Number of bins for the histogram.
     """
-    # logger.info(f"Animating frame {i}")
-    # logger.info(f">> CALL animate({i})")
     [ax.clear() for ax in axes]
 
-    # Plot 1
+    # Plot 1 - Particles
     plot_scatter(i, axes[0], rs, radius, ixr, ixl)
 
     # Plot 2 - Histogram

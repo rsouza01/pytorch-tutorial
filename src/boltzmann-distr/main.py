@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# pylint: disable=R0913,R0917
 
 """
 Billiards simulation script.
@@ -70,10 +69,10 @@ def get_delta_pairs(x):
     """
     return np.diff(np.asarray(list(combinations(x, 2))), axis=1).ravel()
 
-def get_deltad_pairs(r):
+def get_deltad_pairs(positions):
     """Calculate the distance between pairs of particles."""
     return np.sqrt(
-        get_delta_pairs(r[0])**2 + get_delta_pairs(r[1])**2
+        get_delta_pairs(positions[0])**2 + get_delta_pairs(positions[1])**2
     )
 
 def compute_new_v(v1, v2, r1, r2):
@@ -86,7 +85,7 @@ def compute_new_v(v1, v2, r1, r2):
         r2 (np.ndarray): Position of the second particle."""
     return get_new_v(v1, v2, r1, r2), get_new_v(v2, v1, r2, r1)
 
-def simulate_motion(position, velocities, id_pairs, ts, dt, d_cutoff):
+def simulate_motion(positions, velocities, id_pairs, ts, dt, d_cutoff):
     """
     ts= frames, so 
     [
@@ -97,37 +96,44 @@ def simulate_motion(position, velocities, id_pairs, ts, dt, d_cutoff):
         ...
     ]
     """
-
-    rs = np.zeros((ts, position.shape[0], position.shape[1]))
-    logger.info("position.shape[0]: %s", position.shape[0])
-    logger.info("position.shape[1]: %s", position.shape[1])
-    logger.info("rs size: %s", len(rs))
+    ts = 10
+    rs = np.zeros((ts, positions.shape[0], positions.shape[1]))
+    # logger.info("position.shape[0]: %s", position.shape[0])
+    # logger.info("position.shape[1]: %s", position.shape[1])
+    # logger.info("rs size: %s", len(rs))
 
     vs = np.zeros((ts, velocities.shape[0], velocities.shape[1]))
-    logger.info("v.shape[0]: %s", velocities.shape[0])
-    logger.info("v.shape[1]: %s", velocities.shape[1])
+    # logger.info("v.shape[0]: %s", velocities.shape[0])
+    # logger.info("v.shape[1]: %s", velocities.shape[1])
     # logger.info("vs: %s", vs)
 
     # Initial state
-    rs[0] = position.copy()
-    vs[0] = velocities.copy()
+    rs[0] = positions.copy()    # rs[0][0]=x, rs[0][1]=y
+    vs[0] = velocities.copy()  # vs[0][0]=v_x, vs[0][1]=v_y
 
-    logger.info(">>>> rs[0]: %s", rs[0]) # only r Xs
-    logger.info(">>>> vs[0]: %s", vs[0])
-
+    # logger.info(80*">")
+    # logger.info(">>>> rs[0]: %s", rs[0])
+    # logger.info(">>>> vs[0]: %s", vs[0])
+    # logger.info(80*">")
 
     for i in range(1, ts):
-        ic = id_pairs[get_deltad_pairs(position) < d_cutoff]
+        logger.info(">>>> i: %d, positions[0]): %s", i, positions[0])
+        logger.info(">>>> i: %d, get_deltad_pairs(position): %s", i, get_deltad_pairs(positions))
+        
+        ic = id_pairs[get_deltad_pairs(positions) < d_cutoff]
+        
+        # logger.info(">>>> i: %d, id: %s", i, str(ic))
+        
         velocities[:,ic[:,0]], velocities[:,ic[:,1]] = compute_new_v(
             velocities[:,ic[:,0]], velocities[:,ic[:,1]],
-            position[:,ic[:,0]], position[:,ic[:,1]]
+            positions[:,ic[:,0]], positions[:,ic[:,1]]
         )
-        velocities[0, position[0] > 1] = -np.abs(velocities[0, position[0] > 1])
-        velocities[0, position[0] < 0] = np.abs(velocities[0, position[0] < 0])
-        velocities[1, position[1] > 1] = -np.abs(velocities[1, position[1] > 1])
-        velocities[1, position[1] < 0] = np.abs(velocities[1, position[1] < 0])
-        position = position + velocities * dt
-        rs[i] = position.copy()
+        velocities[0, positions[0] > 1] = -np.abs(velocities[0, positions[0] > 1])
+        velocities[0, positions[0] < 0] = np.abs(velocities[0, positions[0] < 0])
+        velocities[1, positions[1] > 1] = -np.abs(velocities[1, positions[1] > 1])
+        velocities[1, positions[1] < 0] = np.abs(velocities[1, positions[1] < 0])
+        positions = positions + velocities * dt
+        rs[i] = positions.copy()
         vs[i] = velocities.copy()
 
     return rs, vs
@@ -162,7 +168,8 @@ def main() -> int:
 
     # Generate all pairs of particle IDs, for collision detection
     ids_pairs = np.asarray(list(combinations(ids,2)))
-    logger.info("Particle pairs: %s", ids_pairs)
+    # logger.info("Particle pairs: %s", ids_pairs)
+    logger.info("# Particle pairs: %s", len(ids_pairs))
 
     # Initial velocities.
     v = np.zeros((2,n_particles))
