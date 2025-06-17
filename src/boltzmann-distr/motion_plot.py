@@ -36,18 +36,15 @@ def animate(i, fig, axes, rs, radius, ixr, ixl, v, fv, vs, bins):
     """
     # logger.info(f"Animating frame {i}")
     # logger.info(f">> CALL animate({i})")
-    try:
-        [ax.clear() for ax in axes]
+    [ax.clear() for ax in axes]
 
-        # Plot 1
-        plot_scatter(i, axes[0], rs, radius, ixr, ixl)
+    # Plot 1
+    plot_scatter(i, axes[0], rs, radius, ixr, ixl)
 
-        # Plot 2 - Histogram
-        plot_histogram(i, axes[1], v, vs, fv, bins)
+    # Plot 2 - Histogram
+    plot_histogram(i, axes[1], v, vs, fv, bins)
 
-        fig.tight_layout()
-    except Exception as e:
-        logger.info("Exception on animate: '%s'", str(e))
+    fig.tight_layout()
 
 def plot_scatter(i, ax, rs, radius, ixr, ixl):
     """Plot the scatter plot of particle positions with circles representing particles."""
@@ -55,8 +52,15 @@ def plot_scatter(i, ax, rs, radius, ixr, ixl):
     xred, yred = rs[i][0][ixr], rs[i][1][ixr]
     xblue, yblue = rs[i][0][ixl],rs[i][1][ixl]
 
-    circles_red = [plt.Circle((xi, yi), radius=4*radius, linewidth=0) for xi,yi in zip(xred,yred)]
-    circles_blue = [plt.Circle((xi, yi), radius=4*radius, linewidth=0) for xi,yi in zip(xblue,yblue)]
+    circles_red = [
+        plt.Circle((xi, yi),
+                   radius=4*radius,
+                   linewidth=0) for xi,yi in zip(xred,yred)
+        ]
+    circles_blue = [
+        plt.Circle((xi, yi),
+                   radius=4*radius,
+                   linewidth=0) for xi,yi in zip(xblue,yblue)]
 
     cred = matplotlib.collections.PatchCollection(circles_red, facecolors="red")
     cblue = matplotlib.collections.PatchCollection(circles_blue, facecolors="blue")

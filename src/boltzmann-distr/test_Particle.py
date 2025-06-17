@@ -19,8 +19,8 @@ def test_particle_distance():
     """
     Test the distance calculation between two particles.
     """
-    p1 = Particle(p_id=1, x=0.6, y=0.2, vx=0, vy=0, radius=0.05)
-    p2 = Particle(p_id=2, x=0.7, y=0.2, vx=0, vy=0, radius=0.05)
+    p1 = Particle(p_id=1, x=0.6, y=0.2, initial_velocity_modulus=500, radius=0.05)
+    p2 = Particle(p_id=2, x=0.7, y=0.2, initial_velocity_modulus=500, radius=0.05)
 
     logger.info("Particle 1: %s", p1)
     logger.info("Particle 2: %s", p2)
@@ -36,8 +36,8 @@ def test_particle_collision():
     Test the collision detection between two particles.
     """
     particle_radius = 0.05
-    p1 = Particle(p_id=1, x=0.6, y=0.2, vx=0, vy=0, radius=particle_radius)
-    p2 = Particle(p_id=2, x=0.7, y=0.2, vx=0, vy=0, radius=particle_radius)
+    p1 = Particle(p_id=1, x=0.6, y=0.2, initial_velocity_modulus=500, radius=particle_radius)
+    p2 = Particle(p_id=2, x=0.7, y=0.2, initial_velocity_modulus=500, radius=particle_radius)
 
     logger.info("Particle 1: %s", p1)
     logger.info("Particle 2: %s", p2)
@@ -52,8 +52,8 @@ def test_particle_non_collision():
     """
     logger.info("Testing non-collision between two particles.")
     particle_radius = 0.05
-    p1 = Particle(p_id=1, x=0.0, y=0.0, vx=0, vy=0, radius=particle_radius)
-    p2 = Particle(p_id=2, x=1, y=1, vx=0, vy=0, radius=particle_radius)
+    p1 = Particle(p_id=1, x=0.0, y=0.0, initial_velocity_modulus=500, radius=particle_radius)
+    p2 = Particle(p_id=2, x=1, y=1, initial_velocity_modulus=500, radius=particle_radius)
 
     logger.info("Particle 1: %s", p1)
     logger.info("Particle 2: %s", p2)
@@ -66,7 +66,7 @@ def test_init_x_greater_than_half():
     """
     Test the initialization of a Particle with x greater than 0.5.
     """
-    p = Particle(p_id=1, x=0.6, y=0.2, vx=0, vy=0, radius=5)
+    p = Particle(p_id=1, x=0.6, y=0.2, initial_velocity_modulus=500, radius=5)
     assert p.x == 0.6
     assert p.y == 0.2
     assert p.vx == 500
@@ -78,7 +78,7 @@ def test_init_x_less_than_half():
     """
     Test the initialization of a Particle with x less than 0.5.
     """
-    p = Particle(p_id=2, x=0.4, y=0.3, vx=0, vy=0, radius=3)
+    p = Particle(p_id=2, x=0.4, y=0.3, initial_velocity_modulus=500, radius=3)
     assert p.x == 0.4
     assert p.y == 0.3
     assert p.vx == -500
@@ -90,7 +90,7 @@ def test_init_x_negative_color_red():
     """
     Test the initialization of a Particle with x less than 0 and color red.
     """
-    p = Particle( p_id=3, x=-0.1, y=0.0, vx=0, vy=0, radius=2)
+    p = Particle( p_id=3, x=-0.1, y=0.0, initial_velocity_modulus=500, radius=2)
     assert p.color == 'red'
     assert p.vx == -500  # since x < 0.5
 
@@ -98,6 +98,6 @@ def test_repr():
     """
     Test the string representation of a Particle.
     """
-    p = Particle(p_id=4, x=0.7, y=0.8, vx=0, vy=0, radius=1)
+    p = Particle(p_id=4, x=0.7, y=0.8, initial_velocity_modulus=500, radius=1)
     s = repr(p)
     assert "Particle(x=0.7, y=0.8, vx=500, vy=0, radius=1)" in s

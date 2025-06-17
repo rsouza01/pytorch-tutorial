@@ -2,11 +2,10 @@
 
 class Particle:
     """A class representing a particle in a billiards simulation."""
-    def __init__(self, p_id, x, y, vx, vy, radius):
+    def __init__(self, p_id, x, y, initial_velocity_modulus, radius):
         self.p_id = p_id  # Unique identifier for the particle
-        self.x = x  # x-coordinate of the particle
-        self.y = y  # y-coordinate of the particle
-        self.vx = (1 if x > 0.5 else -1) * 500 # x-component of velocity
+        self.x, self.y = x, y  # coordinates of the particle
+        self.vx = (1 if x > 0.5 else -1) * initial_velocity_modulus # x-component of velocity
         self.vy = 0  # y-component of velocity
         self.radius = radius  # radius of the particle
         self.color = 'red' if x < 0 else 'blue'

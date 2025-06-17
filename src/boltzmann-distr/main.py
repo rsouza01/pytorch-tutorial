@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# pylint: disable=R0913,R0917
+
 """
 Billiards simulation script.
 This script simulates the motion of particles in a billiards-like environment.
@@ -31,7 +33,7 @@ def get_config(filename="config.yaml"):
     Returns:
         n_particles (int): Number of particles in the simulation.
         radius (float): Radius of the particles.
-        run_partial (bool): Whether to run a partial simulation.
+        run_animation (bool): Whether to run a partial simulation.
         initial_velocity (float): Initial velocity of the particles.
     """
     with open(filename, encoding="utf-8") as f:
@@ -39,10 +41,10 @@ def get_config(filename="config.yaml"):
 
     return cfg["simulation"]["n_particles"], \
         cfg["simulation"]["radius"], \
-        cfg["simulation"]["run_partial"], \
+        cfg["simulation"]["run_animation"], \
         cfg["simulation"]["initial_velocity"]
 
-def print_header(n_particles, radius, run_partial, initial_velocity):
+def print_header(n_particles, radius, run_animation, initial_velocity):
     """
     Print the header information for the simulation.
     """
@@ -51,7 +53,7 @@ def print_header(n_particles, radius, run_partial, initial_velocity):
     logger.info("="*100)
     logger.info("n_particles: %s", n_particles)
     logger.info("radius: %s", radius)
-    logger.info("run_partial: %s", run_partial)
+    logger.info("run_animation: %s", run_animation)
     logger.info("initial_velocity: %s", initial_velocity)
     logger.info("="*100)
 
@@ -137,9 +139,9 @@ def main() -> int:
 
     time_start = datetime.now()
 
-    n_particles, radius, run_partial, initial_velocity = get_config()
+    n_particles, radius, run_animation, initial_velocity = get_config()
 
-    print_header(n_particles, radius, run_partial, initial_velocity)
+    print_header(n_particles, radius, run_animation, initial_velocity)
 
     # Array where element 0 is the X position and element 1 is the Y position
     p_positions = np.random.random((2,n_particles))
@@ -179,18 +181,18 @@ def main() -> int:
 
     fig, axes = plt.subplots(1, 2, figsize=(20,10))
 
-    if run_partial:
-        logger.info("Running partial, exiting now")
+    if not run_animation:
+        logger.info("Animation generation disabled, exiting now")
         return 0
 
-    logger.info("About to call FuncAnimation...")
+    logger.info("Calling FuncAnimation...")
     ani = animation.FuncAnimation(fig,
                                   mp.animate,
                                   frames=1000,
                                   interval=50,
                                   fargs=(fig, axes, rs, radius, ixr, ixl, v, fv, vs, bins))
 
-    logger.info("About to save the charts...")
+    logger.info("Saving the charts...")
     ani.save('ani.gif',writer='pillow',fps=30,dpi=100)
     logger.info("Done!")
 

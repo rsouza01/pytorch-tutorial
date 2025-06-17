@@ -3,7 +3,7 @@
 version: "3"
 
 vars:
-  GREETING: Pytorch tutorial
+  GREETING: Boltzmann distribution
 
 tasks:
   default:
@@ -11,12 +11,16 @@ tasks:
       - echo "{{.GREETING}}"
     silent: true
 
-  billiards:
+  run:
     deps: [clean]
     cmds:
       - python ./main.py
 
-  tests:
+  lint:
+    cmds:
+      - pylint --rcfile=../../.pylintrc   .
+
+  test:
     cmds:
       - pytest
 
