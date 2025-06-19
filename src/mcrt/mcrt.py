@@ -16,7 +16,7 @@ from scipy import constants
 # --- 1. SIMULATION CONFIGURATION ---
 
 # Number of photons to simulate. More photons = more accurate results, but slower.
-N_PHOTONS = 50000
+N_PHOTONS = 100000
 
 # Source characteristics
 SOURCE_TEMP = 5800  # Temperature of the blackbody source in Kelvin (e.g., 5800K for the Sun)
@@ -77,7 +77,7 @@ def planck_law(wavelength, T):
     # Numerator of Planck's Law
     term1 = 2 * h * c**2 / wavelength**5
     # Denominator term
-    term2 = np.expm1(h * c / (wavelength * k_B * T)) # expm1(x) is exp(x) - 1
+    term2 = np.expm1((h * c) / (wavelength * k_B * T)) # expm1(x) is exp(x) - 1
     # Avoid division by zero for very small wavelengths or zero denominator
     return term1 / term2
 
