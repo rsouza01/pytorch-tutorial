@@ -96,7 +96,7 @@ def simulate_motion(positions, velocities, id_pairs, ts, dt, d_cutoff):
         ...
     ]
     """
-    ts = 10
+    # ts = 10
     rs = np.zeros((ts, positions.shape[0], positions.shape[1]))
     # logger.info("position.shape[0]: %s", position.shape[0])
     # logger.info("position.shape[1]: %s", position.shape[1])
@@ -178,7 +178,7 @@ def main() -> int:
 
     logger.info("Calling motion...")
     # rs, vs = motion(p_positions, v, ids_pairs, ts=10000, dt=0.000008, d_cutoff=2*radius)
-    rs, vs = simulate_motion(p_positions, v, ids_pairs, ts=100, dt=0.000008, d_cutoff=2*radius)
+    rs, vs = simulate_motion(p_positions, v, ids_pairs, ts=10000, dt=0.000008, d_cutoff=2*radius)
 
     v = np.linspace(0, 2000, 1000)
     a = 2/500**2

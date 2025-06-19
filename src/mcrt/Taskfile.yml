@@ -1,0 +1,25 @@
+# https://taskfile.dev
+
+version: "3"
+
+vars:
+  GREETING: MCRT
+
+tasks:
+  default:
+    cmds:
+      - echo "{{.GREETING}}"
+    silent: true
+
+  run:
+    # deps: [clean]
+    cmds:
+      - python ./mcrt.py
+
+  lint:
+    cmds:
+      - pylint --rcfile=../../.pylintrc   .
+
+  clean:
+    cmds:
+      - rm -rf *.gif
