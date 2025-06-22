@@ -1,5 +1,6 @@
 simulation:
-  n_particles: 6
-  radius: 0.0015
-  run_animation: True
+  n_particles: 50
+  # radius: 0.0015
+  radius: 0.05
+  run_animation: False
   initial_velocity: 500

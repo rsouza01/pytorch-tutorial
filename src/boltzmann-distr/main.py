@@ -6,6 +6,8 @@ Billiards simulation script.
 This script simulates the motion of particles in a billiards-like environment.
 It initializes particles with random positions and velocities, simulates their motion,
 and visualizes the results using matplotlib.
+
+Source: https://www.youtube.com/watch?v=65kl4eE9ovI&t=1309s&ab_channel=Mr.PSolver
 """
 
 import sys
@@ -16,6 +18,7 @@ from itertools import combinations
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import animation
+from sympy import pprint
 import yaml
 
 import motion_plot as mp
@@ -69,7 +72,7 @@ def get_delta_pairs(x):
     """
     return np.diff(np.asarray(list(combinations(x, 2))), axis=1).ravel()
 
-def get_deltad_pairs(positions):
+def get_delta_d_pairs(positions):
     """Calculate the distance between pairs of particles."""
     return np.sqrt(
         get_delta_pairs(positions[0])**2 + get_delta_pairs(positions[1])**2
@@ -96,19 +99,18 @@ def simulate_motion(positions, velocities, id_pairs, ts, dt, d_cutoff):
         ...
     ]
     """
+    
     # ts = 10
     rs = np.zeros((ts, positions.shape[0], positions.shape[1]))
-    # logger.info("position.shape[0]: %s", position.shape[0])
-    # logger.info("position.shape[1]: %s", position.shape[1])
-    # logger.info("rs size: %s", len(rs))
+    # logger.info(10*">>>>>")
+    # logger.info("rs: %s", rs)
 
     vs = np.zeros((ts, velocities.shape[0], velocities.shape[1]))
-    # logger.info("v.shape[0]: %s", velocities.shape[0])
-    # logger.info("v.shape[1]: %s", velocities.shape[1])
+    # logger.info(10*">>>>>")
     # logger.info("vs: %s", vs)
 
     # Initial state
-    rs[0] = positions.copy()    # rs[0][0]=x, rs[0][1]=y
+    rs[0] = positions.copy()   # rs[0][0]=x, rs[0][1]=y
     vs[0] = velocities.copy()  # vs[0][0]=v_x, vs[0][1]=v_y
 
     # logger.info(80*">")
@@ -117,12 +119,17 @@ def simulate_motion(positions, velocities, id_pairs, ts, dt, d_cutoff):
     # logger.info(80*">")
 
     for i in range(1, ts):
-        logger.info(">>>> i: %d, positions[0]): %s", i, positions[0])
-        logger.info(">>>> i: %d, get_deltad_pairs(position): %s", i, get_deltad_pairs(positions))
-        
-        ic = id_pairs[get_deltad_pairs(positions) < d_cutoff]
-        
-        # logger.info(">>>> i: %d, id: %s", i, str(ic))
+        # logger.info(">>>> i: %d, positions[0]): %s", i, positions[0])
+        # logger.info(">>>> i: %d, get_delta_d_pairs(position): %s", i, get_delta_d_pairs(positions))
+
+        # ic contains the indices of pairs of particles that are within the cutoff distance
+        # id_pairs is a 2D array where each row is a pair of particle IDs
+        ic = id_pairs[get_delta_d_pairs(positions) < d_cutoff]
+        logger.info(">>>>> get_delta_d_pairs(positions)")
+        pprint(get_delta_d_pairs(positions))
+
+        #logger.info(">>>>> ic")
+        #pprint(ic)
         
         velocities[:,ic[:,0]], velocities[:,ic[:,1]] = compute_new_v(
             velocities[:,ic[:,0]], velocities[:,ic[:,1]],
@@ -135,6 +142,16 @@ def simulate_motion(positions, velocities, id_pairs, ts, dt, d_cutoff):
         positions = positions + velocities * dt
         rs[i] = positions.copy()
         vs[i] = velocities.copy()
+
+    
+        # logger.info("rs: %s", rs)
+
+    # logger.info(10*">>>>> rs")
+    # logger.info("rs: %s", rs)
+    # pprint(rs)
+    # logger.info(10*">>>>>")
+    # logger.info("vs: %s", vs)
+    # pprint(vs)
 
     return rs, vs
 
@@ -150,12 +167,12 @@ def main() -> int:
     print_header(n_particles, radius, run_animation, initial_velocity)
 
     # Array where element 0 is the X position and element 1 is the Y position
-    p_positions = np.random.random((2,n_particles))
+    p_positions = np.random.random((2, n_particles))
     logger.info("Initial X positions: %s", p_positions[0])
     logger.info("Initial Y positions: %s", p_positions[1])
 
-    ixr = p_positions[0]>0.5
-    ixl = p_positions[0]<=0.5
+    ixr = p_positions[0] > 0.5
+    ixl = p_positions[0] <= 0.5
     logger.info("Red particles indices: %s", ixr)
     logger.info("Blue particles indices: %s", ixl)
 
@@ -163,22 +180,33 @@ def main() -> int:
     ids = np.arange(n_particles)
     logger.info("Particle IDs: %s", ids)
 
-    for _id in ids:
-        logger.info("Particle %s: X=%s, Y=%s", _id, p_positions[0][_id], p_positions[1][_id])
+    # for _id in ids:
+    #    logger.info("Particle %s: X=%s, Y=%s", _id, p_positions[0][_id], p_positions[1][_id])
 
     # Generate all pairs of particle IDs, for collision detection
     ids_pairs = np.asarray(list(combinations(ids,2)))
     # logger.info("Particle pairs: %s", ids_pairs)
-    logger.info("# Particle pairs: %s", len(ids_pairs))
+    # logger.info("# Particle pairs: %s", len(ids_pairs))
 
     # Initial velocities.
-    v = np.zeros((2,n_particles))
-    v[0][ixr] = -initial_velocity
+    v = np.zeros((2, n_particles))
+    v[0][ixr] = -initial_velocity # <= Numpy boolean indexing
     v[0][ixl] = initial_velocity
 
+    # logger.info("Vector V[x]: %s", v[0])
+    # logger.info("Vector V[y]: %s", v[1])
+
     logger.info("Calling motion...")
+
+    """
+    logger.info("positions: %s", p_positions)
+    logger.info("positions.shape: %s", p_positions.shape)
+    logger.info("positions.shape[0]: %s", p_positions.shape[0])
+    logger.info("positions.shape[1]: %s", p_positions.shape[1])
+    logger.info("v.shape: %s", v.shape)
+    """
     # rs, vs = motion(p_positions, v, ids_pairs, ts=10000, dt=0.000008, d_cutoff=2*radius)
-    rs, vs = simulate_motion(p_positions, v, ids_pairs, ts=10000, dt=0.000008, d_cutoff=2*radius)
+    rs, vs = simulate_motion(p_positions, v, ids_pairs, ts=10, dt=0.000008, d_cutoff=2*radius)
 
     v = np.linspace(0, 2000, 1000)
     a = 2/500**2
