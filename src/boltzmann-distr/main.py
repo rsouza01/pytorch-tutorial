@@ -44,7 +44,8 @@ def get_config(filename="config.yaml"):
     return cfg["simulation"]["n_particles"], \
         cfg["simulation"]["radius"], \
         cfg["simulation"]["run_animation"], \
-        cfg["simulation"]["initial_velocity"]
+        cfg["simulation"]["initial_velocity"], \
+        cfg["simulation"]["ts"]
 
 def print_header(n_particles, radius, run_animation, initial_velocity):
     """
@@ -88,7 +89,7 @@ def compute_new_v(v1, v2, r1, r2):
         r2 (np.ndarray): Position of the second particle."""
     return get_new_v(v1, v2, r1, r2), get_new_v(v2, v1, r2, r1)
 
-def simulate_motion(positions, velocities, id_pairs, ts, dt, d_cutoff):
+def simulate_motion(positions, velocities, radius, id_pairs, ts, dt, d_cutoff):
     """
     ts= frames, so 
     [
@@ -135,10 +136,10 @@ def simulate_motion(positions, velocities, id_pairs, ts, dt, d_cutoff):
             velocities[:,ic[:,0]], velocities[:,ic[:,1]],
             positions[:,ic[:,0]], positions[:,ic[:,1]]
         )
-        velocities[0, positions[0] > 1] = -np.abs(velocities[0, positions[0] > 1])
-        velocities[0, positions[0] < 0] = np.abs(velocities[0, positions[0] < 0])
-        velocities[1, positions[1] > 1] = -np.abs(velocities[1, positions[1] > 1])
-        velocities[1, positions[1] < 0] = np.abs(velocities[1, positions[1] < 0])
+        velocities[0, positions[0] >= 1 - radius] = -np.abs(velocities[0, positions[0] >= 1 - radius])
+        velocities[0, positions[0] <= 0 + radius] = np.abs(velocities[0, positions[0] <= 0 + radius])
+        velocities[1, positions[1] >= 1 - radius] = -np.abs(velocities[1, positions[1] >= 1 - radius])
+        velocities[1, positions[1] <= 0 + radius] = np.abs(velocities[1, positions[1] <= 0 + radius])
         positions = positions + velocities * dt
         rs[i] = positions.copy()
         vs[i] = velocities.copy()
@@ -162,7 +163,7 @@ def main() -> int:
 
     time_start = datetime.now()
 
-    n_particles, radius, run_animation, initial_velocity = get_config()
+    n_particles, radius, run_animation, initial_velocity, ts = get_config()
 
     print_header(n_particles, radius, run_animation, initial_velocity)
 
@@ -206,7 +207,7 @@ def main() -> int:
     logger.info("v.shape: %s", v.shape)
     """
     # rs, vs = motion(p_positions, v, ids_pairs, ts=10000, dt=0.000008, d_cutoff=2*radius)
-    rs, vs = simulate_motion(p_positions, v, ids_pairs, ts=10, dt=0.000008, d_cutoff=2*radius)
+    rs, vs = simulate_motion(p_positions, v, radius, ids_pairs, ts=ts, dt=0.000008, d_cutoff=2*radius)
 
     v = np.linspace(0, 2000, 1000)
     a = 2/500**2

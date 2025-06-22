@@ -52,12 +52,12 @@ def plot_scatter(i, ax, rs, radius, ixr, ixl):
 
     circles_red = [
         plt.Circle((xi, yi),
-                   radius=4*radius,
+                   radius=2*radius,
                    linewidth=0) for xi,yi in zip(xred,yred)
         ]
     circles_blue = [
         plt.Circle((xi, yi),
-                   radius=4*radius,
+                   radius=2*radius,
                    linewidth=0) for xi,yi in zip(xblue,yblue)]
 
     cred = matplotlib.collections.PatchCollection(circles_red, facecolors="red")
