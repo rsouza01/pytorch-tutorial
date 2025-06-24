@@ -23,11 +23,11 @@ import yaml
 
 import motion_plot as mp
 
+log_format = "{asctime} - {levelname} - {funcName} - {message}"
+logging.basicConfig(level=logging.DEBUG, format=log_format, datefmt="%H:%M:%S", style="{")
+
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO, format="{asctime} - {levelname} - {message}",
-     style="{",
-     datefmt="%H:%M:%S",
- )
+logger.setLevel(logging.DEBUG)
 
 def get_config(filename="config.yaml"):
     """
@@ -52,7 +52,7 @@ def print_header(n_particles, radius, run_animation, initial_velocity):
     Print the header information for the simulation.
     """
     logger.info("="*100)
-    logger.info("Billiards Simulation")
+    logger.info("Maxwell-Boltzmann Distribution Simulation")
     logger.info("="*100)
     logger.info("n_particles: %s", n_particles)
     logger.info("radius: %s", radius)
@@ -89,7 +89,7 @@ def compute_new_v(v1, v2, r1, r2):
         r2 (np.ndarray): Position of the second particle."""
     return get_new_v(v1, v2, r1, r2), get_new_v(v2, v1, r2, r1)
 
-def simulate_motion(positions, velocities, radius, id_pairs, ts, dt, d_cutoff):
+def simulate_motion(positions, velocities, id_pairs, ts, dt, d_cutoff):
     """
     ts= frames, so 
     [
@@ -101,33 +101,24 @@ def simulate_motion(positions, velocities, radius, id_pairs, ts, dt, d_cutoff):
     ]
     """
     
-    # ts = 10
     rs = np.zeros((ts, positions.shape[0], positions.shape[1]))
-    # logger.info(10*">>>>>")
-    # logger.info("rs: %s", rs)
-
     vs = np.zeros((ts, velocities.shape[0], velocities.shape[1]))
-    # logger.info(10*">>>>>")
-    # logger.info("vs: %s", vs)
 
     # Initial state
-    rs[0] = positions.copy()   # rs[0][0]=x, rs[0][1]=y
-    vs[0] = velocities.copy()  # vs[0][0]=v_x, vs[0][1]=v_y
-
-    # logger.info(80*">")
-    # logger.info(">>>> rs[0]: %s", rs[0])
-    # logger.info(">>>> vs[0]: %s", vs[0])
-    # logger.info(80*">")
+    # t = 0, first element of rs
+    # Then rs[0][0] has ALL x positions of all particles for t=0 and rs[0][1] has ALL y positions of all particles for t=0.
+    # The next two statements store a snapshot of the initial positions and velocities
+    rs[0] = positions.copy()   # rs[t][0][0]=x, rs[t][0][1]=y
+    vs[0] = velocities.copy()  # vs[t][0][0]=v_x, vs[t][0][1]=v_y
+    logger.debug("Snapshot ts=0: (x=%s, y=%s, v_x=%s, v_y=%s)", rs[0][0][0], rs[0][1][0], vs[0][0][0], vs[0][1][0])
+    logger.debug("rs.shape: %s", rs.shape)
 
     for i in range(1, ts):
-        # logger.info(">>>> i: %d, positions[0]): %s", i, positions[0])
-        # logger.info(">>>> i: %d, get_delta_d_pairs(position): %s", i, get_delta_d_pairs(positions))
-
         # ic contains the indices of pairs of particles that are within the cutoff distance
         # id_pairs is a 2D array where each row is a pair of particle IDs
-        ic = id_pairs[get_delta_d_pairs(positions) < d_cutoff]
-        logger.info(">>>>> get_delta_d_pairs(positions)")
-        pprint(get_delta_d_pairs(positions))
+        ic = id_pairs[get_delta_d_pairs(positions) < 2 * d_cutoff]
+        # logger.info(">>>>> get_delta_d_pairs(positions)")
+        # pprint(get_delta_d_pairs(positions))
 
         #logger.info(">>>>> ic")
         #pprint(ic)
@@ -136,10 +127,10 @@ def simulate_motion(positions, velocities, radius, id_pairs, ts, dt, d_cutoff):
             velocities[:,ic[:,0]], velocities[:,ic[:,1]],
             positions[:,ic[:,0]], positions[:,ic[:,1]]
         )
-        velocities[0, positions[0] >= 1 - radius] = -np.abs(velocities[0, positions[0] >= 1 - radius])
-        velocities[0, positions[0] <= 0 + radius] = np.abs(velocities[0, positions[0] <= 0 + radius])
-        velocities[1, positions[1] >= 1 - radius] = -np.abs(velocities[1, positions[1] >= 1 - radius])
-        velocities[1, positions[1] <= 0 + radius] = np.abs(velocities[1, positions[1] <= 0 + radius])
+        velocities[0, positions[0] >= 1 - d_cutoff] = -np.abs(velocities[0, positions[0] >= 1 - d_cutoff])
+        velocities[0, positions[0] <= 0 + d_cutoff] = np.abs(velocities[0, positions[0] <= 0 + d_cutoff])
+        velocities[1, positions[1] >= 1 - d_cutoff] = -np.abs(velocities[1, positions[1] >= 1 - d_cutoff])
+        velocities[1, positions[1] <= 0 + d_cutoff] = np.abs(velocities[1, positions[1] <= 0 + d_cutoff])
         positions = positions + velocities * dt
         rs[i] = positions.copy()
         vs[i] = velocities.copy()
@@ -167,48 +158,53 @@ def main() -> int:
 
     print_header(n_particles, radius, run_animation, initial_velocity)
 
-    # Array where element 0 is the X position and element 1 is the Y position
-    p_positions = np.random.random((2, n_particles))
-    logger.info("Initial X positions: %s", p_positions[0])
-    logger.info("Initial Y positions: %s", p_positions[1])
-
-    ixr = p_positions[0] > 0.5
-    ixl = p_positions[0] <= 0.5
-    logger.info("Red particles indices: %s", ixr)
-    logger.info("Blue particles indices: %s", ixl)
-
     # Each particle has an ID, which is just its index in the array
     ids = np.arange(n_particles)
-    logger.info("Particle IDs: %s", ids)
-
-    # for _id in ids:
-    #    logger.info("Particle %s: X=%s, Y=%s", _id, p_positions[0][_id], p_positions[1][_id])
+    logger.debug("Particle IDs: %s", ids)
+    logger.debug("Particle IDs.shape: %s", ids.shape)
 
     # Generate all pairs of particle IDs, for collision detection
-    ids_pairs = np.asarray(list(combinations(ids,2)))
-    # logger.info("Particle pairs: %s", ids_pairs)
-    # logger.info("# Particle pairs: %s", len(ids_pairs))
+    ids_pairs = np.asarray(list(combinations(ids, 2)))
+    logger.debug("Particle pairs: %s", [str(pair) for pair in ids_pairs])
+    logger.debug("Particle pairs.shape: %s", ids_pairs.shape)
+
+    # Array where element 0 is the X position and element 1 is the Y position
+    positions = np.random.random((2, n_particles))
+    # pprint(positions)
+    logger.debug("Coordinate particle[0]: (%s, %s)", positions[0][0], positions[1][0])
+    logger.debug("Initial X positions: %s", positions[0])
+    logger.debug("Initial Y positions: %s", positions[1])
+    logger.debug("-"*100)
+
+    ixr = positions[0] > 0.5  # Vector operation, returns a boolean array with True for positions > 0.5
+    ixl = positions[0] <= 0.5 # Vector operation, returns a boolean array with True for positions <= 0.5
+    logger.debug("Blue(left) particles indices: %s", ids[ixl])
+    logger.debug("Red(right) particles indices: %s", ids[ixr])
+    logger.debug(">>> positions.shape: %s", positions.shape)
+    logger.debug(">>> positions.shape[0](x OR y): %s", positions.shape[0])
+    logger.debug(">>> positions.shape[1](x0, x1, x2, ..., or y0, y1, y2, ...): %s", positions.shape[1])
+    logger.debug("-"*100)
 
     # Initial velocities.
-    v = np.zeros((2, n_particles))
-    v[0][ixr] = -initial_velocity # <= Numpy boolean indexing
-    v[0][ixl] = initial_velocity
+    velocities = np.zeros((2, n_particles))
+    velocities[0][ixr] = -initial_velocity # <= Numpy boolean indexing, one line assignment for the whole array
+    velocities[0][ixl] =  initial_velocity
 
-    # logger.info("Vector V[x]: %s", v[0])
-    # logger.info("Vector V[y]: %s", v[1])
+    # Obvious results, but useful for debugging
+    logger.debug("Blue(left) particles velocities: %s", velocities[0][ixl])
+    logger.debug("Red(right) particles velocities: %s", velocities[0][ixr])
+    logger.debug("-"*100)
 
     logger.info("Calling motion...")
 
-    """
-    logger.info("positions: %s", p_positions)
-    logger.info("positions.shape: %s", p_positions.shape)
-    logger.info("positions.shape[0]: %s", p_positions.shape[0])
-    logger.info("positions.shape[1]: %s", p_positions.shape[1])
-    logger.info("v.shape: %s", v.shape)
-    """
-    # rs, vs = motion(p_positions, v, ids_pairs, ts=10000, dt=0.000008, d_cutoff=2*radius)
-    rs, vs = simulate_motion(p_positions, v, radius, ids_pairs, ts=ts, dt=0.000008, d_cutoff=2*radius)
+    # rs, vs = motion(positions, velocities, ids_pairs, ts=10000, dt=0.000008, d_cutoff=2*radius)
+    rs, vs = simulate_motion(positions, velocities, ids_pairs, ts=ts, dt=0.000008, d_cutoff=2*radius)
 
+    if not run_animation:
+        logger.info("Animation generation disabled, exiting now.")
+        return 0
+
+    logger.info("Animation generation enabled, proceeding...")
     v = np.linspace(0, 2000, 1000)
     a = 2/500**2
     fv = a*v*np.exp(-a*v**2 / 2)
@@ -216,10 +212,6 @@ def main() -> int:
     bins = np.linspace(0,1500,50)
 
     fig, axes = plt.subplots(1, 2, figsize=(20,10))
-
-    if not run_animation:
-        logger.info("Animation generation disabled, exiting now")
-        return 0
 
     logger.info("Calling FuncAnimation...")
     ani = animation.FuncAnimation(fig,

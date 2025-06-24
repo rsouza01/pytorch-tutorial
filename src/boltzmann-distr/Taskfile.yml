@@ -14,7 +14,7 @@ tasks:
   run:
     # deps: [clean]
     cmds:
-      - python ./main.py
+      - python ./main.py --log=DEBUG
 
   lint:
     cmds:
