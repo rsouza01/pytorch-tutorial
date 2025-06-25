@@ -16,7 +16,7 @@ logging.basicConfig(level=logging.INFO, format="{asctime} - {levelname} - {messa
  )
 
 
-def animate(i, fig, axes, rs, radius, ixr, ixl, v, fv, vs, bins):
+def animate(i, fig, axes, rs, radius, ixr, ixl, v, fv, vs, bins, hist_x_min_value, hist_x_max_value, hist_y_min_value, hist_y_max_value):
     """
     Update the animation frame for the given index `i`.
     This function clears the axes and plots the current state of the particles
@@ -40,7 +40,7 @@ def animate(i, fig, axes, rs, radius, ixr, ixl, v, fv, vs, bins):
     plot_scatter(i, axes[0], rs, radius, ixr, ixl)
 
     # Plot 2 - Histogram
-    plot_histogram(i, axes[1], v, vs, fv, bins)
+    plot_histogram(i, axes[1], v, vs, fv, bins, hist_x_min_value, hist_x_max_value, hist_y_min_value, hist_y_max_value)
 
     fig.tight_layout()
 
@@ -71,14 +71,14 @@ def plot_scatter(i, ax, rs, radius, ixr, ixl):
     ax.tick_params(axis="y", labelsize=15)
 
 
-def plot_histogram(i, ax, v, vs, fv, bins):
+def plot_histogram(i, ax, v, vs, fv, bins, hist_x_min_value, hist_x_max_value, hist_y_min_value, hist_y_max_value):
     """Plot the histogram of particle velocities."""
 
     ax.hist(np.sqrt(np.sum(vs[i]**2, axis=0)), bins=bins, density=True)
     ax.plot(v,fv)
     ax.set_xlabel(f"Velocity [m/s], Frame {i}")
     ax.set_ylabel("# Particles")
-    ax.set_xlim(0,1500)
-    ax.set_ylim(0,0.006)
+    ax.set_xlim(hist_x_min_value, hist_x_max_value)
+    ax.set_ylim(hist_y_min_value, hist_y_max_value)
     ax.tick_params(axis="x", labelsize=15)
     ax.tick_params(axis="y", labelsize=15)

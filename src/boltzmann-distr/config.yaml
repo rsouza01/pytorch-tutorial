@@ -1,7 +1,20 @@
 simulation:
-  n_particles: 4
+  n_particles: 600
   # radius: 0.0015
   ts: 10000
-  radius: 0.005
+  radius: 0.0015
   run_animation: True
   initial_velocity: 500
+
+animation:
+  frames: 2000 
+  interval: 25
+
+histogram:
+  x_min_value: 0
+  x_max_value: 1500
+  y_min_value: 0
+  y_max_value: 0.006
+  bin_lower: 0
+  bin_upper: 1600
+  bin_divisions: 70

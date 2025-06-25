@@ -28,6 +28,8 @@ logging.basicConfig(level=logging.DEBUG, format=log_format, datefmt="%H:%M:%S", 
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
+# logger.setLevel(logging.INFO)
+
 
 def get_config(filename="config.yaml"):
     """
@@ -41,11 +43,23 @@ def get_config(filename="config.yaml"):
     with open(filename, encoding="utf-8") as f:
         cfg = yaml.load(f, Loader=yaml.FullLoader)
 
+    return cfg
+"""
     return cfg["simulation"]["n_particles"], \
         cfg["simulation"]["radius"], \
         cfg["simulation"]["run_animation"], \
         cfg["simulation"]["initial_velocity"], \
-        cfg["simulation"]["ts"]
+        cfg["simulation"]["ts"], \
+        cfg["histogram"]["x_min_value"], \
+        cfg["histogram"]["x_max_value"], \
+        cfg["histogram"]["y_min_value"], \
+        cfg["histogram"]["y_max_value"], \
+        cfg["histogram"]["bins_lower"], \
+        cfg["histogram"]["bins_upper"], \
+        cfg["histogram"]["bins_divisions"], \
+        cfg["animation"]["frames"], \
+        cfg["animation"]["interval"]
+"""
 
 def print_header(n_particles, radius, run_animation, initial_velocity):
     """
@@ -89,6 +103,18 @@ def compute_new_v(v1, v2, r1, r2):
         r2 (np.ndarray): Position of the second particle."""
     return get_new_v(v1, v2, r1, r2), get_new_v(v2, v1, r2, r1)
 
+def get_instant_termodynamic_properties(i, positions, velocities):
+    """
+    Calculate and log the instantaneous thermodynamic properties of the system.
+    Args:
+        i (int): The current time step index.
+        positions (np.ndarray): The positions of the particles at time step i.
+        velocities (np.ndarray): The velocities of the particles at time step i.
+    """
+    logger.debug("Instantaneous thermodynamic properties at time step %d:", i)
+    # logger.info("Positions: x=%s, y=%s", positions[0], positions[1])
+    # logger.info("Velocities: v_x=%s, v_y=%s", velocities[0], velocities[1])
+
 def simulate_motion(positions, velocities, id_pairs, ts, dt, d_cutoff):
     """
     ts= frames, so 
@@ -127,14 +153,25 @@ def simulate_motion(positions, velocities, id_pairs, ts, dt, d_cutoff):
             velocities[:,ic[:,0]], velocities[:,ic[:,1]],
             positions[:,ic[:,0]], positions[:,ic[:,1]]
         )
+
+        # Box boundary conditions
+        # If a particle goes beyond the boundary, reverse its velocity
+        # This is done by checking if the position is greater than 1 - d_cutoff
+        # or less than 0 + d_cutoff, and then reversing the velocity accordingly.
         velocities[0, positions[0] >= 1 - d_cutoff] = -np.abs(velocities[0, positions[0] >= 1 - d_cutoff])
         velocities[0, positions[0] <= 0 + d_cutoff] = np.abs(velocities[0, positions[0] <= 0 + d_cutoff])
         velocities[1, positions[1] >= 1 - d_cutoff] = -np.abs(velocities[1, positions[1] >= 1 - d_cutoff])
         velocities[1, positions[1] <= 0 + d_cutoff] = np.abs(velocities[1, positions[1] <= 0 + d_cutoff])
+
+
         positions = positions + velocities * dt
+        
         rs[i] = positions.copy()
         vs[i] = velocities.copy()
 
+        # get_instant_termodynamic_properties(i, rs[i], vs[i])
+        
+        # logger.info(">>>>> rs
     
         # logger.info("rs: %s", rs)
 
@@ -154,7 +191,27 @@ def main() -> int:
 
     time_start = datetime.now()
 
-    n_particles, radius, run_animation, initial_velocity, ts = get_config()
+    cfg = get_config()
+
+    n_particles = cfg["simulation"]["n_particles"]
+    radius = cfg["simulation"]["radius"]
+    run_animation = cfg["simulation"]["run_animation"]
+    initial_velocity = cfg["simulation"]["initial_velocity"]
+    ts = cfg["simulation"]["ts"]
+    hist_x_min_value = cfg["histogram"]["x_min_value"]
+    hist_x_max_value = cfg["histogram"]["x_max_value"]
+    hist_y_min_value = cfg["histogram"]["y_min_value"]
+    hist_y_max_value = cfg["histogram"]["y_max_value"]
+    bin_lower = cfg["histogram"]["bin_lower"]
+    bin_upper = cfg["histogram"]["bin_upper"]
+    bin_divisions = cfg["histogram"]["bin_divisions"]
+    animation_frames = cfg["animation"]["frames"]
+    animation_interval = cfg["animation"]["interval"]
+
+
+    if n_particles > 50:
+        logger.setLevel(logging.INFO)
+
 
     print_header(n_particles, radius, run_animation, initial_velocity)
 
@@ -205,24 +262,26 @@ def main() -> int:
         return 0
 
     logger.info("Animation generation enabled, proceeding...")
-    v = np.linspace(0, 2000, 1000)
-    a = 2/500**2
+    # v = np.linspace(0, 2000, 1000)
+    v = np.linspace(hist_x_min_value, hist_x_max_value, 1000)
+    a = 2/(initial_velocity**2) # = m/k*T
     fv = a*v*np.exp(-a*v**2 / 2)
 
-    bins = np.linspace(0,1500,50)
+  
+    bins = np.linspace(bin_lower, bin_upper, bin_divisions)
 
     fig, axes = plt.subplots(1, 2, figsize=(20,10))
 
     logger.info("Calling FuncAnimation...")
     ani = animation.FuncAnimation(fig,
                                   mp.animate,
-                                  frames=1000,
-                                  interval=50,
-                                  fargs=(fig, axes, rs, radius, ixr, ixl, v, fv, vs, bins))
+                                  frames=animation_frames,
+                                  interval= animation_interval,
+                                  fargs=(fig, axes, rs, radius, ixr, ixl, v, fv, vs, bins, hist_x_min_value, hist_x_max_value, hist_y_min_value, hist_y_max_value))
 
     logger.info("Saving the charts...")
     ani.save('ani.gif',writer='pillow',fps=30,dpi=100)
-    logger.info("Done!")
+    logger.debug("Done!")
 
     time_end = datetime.now()
     difference_seconds = (time_end - time_start).total_seconds()
