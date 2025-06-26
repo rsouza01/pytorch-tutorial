@@ -1,5 +1,5 @@
 simulation:
-  n_particles: 600
+  n_particles: 200
   # radius: 0.0015
   ts: 10000
   radius: 0.0015
@@ -7,7 +7,7 @@ simulation:
   initial_velocity: 500
 
 animation:
-  frames: 2000 
+  frames: 2000
   interval: 25
 
 histogram:
