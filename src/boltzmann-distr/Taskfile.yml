@@ -16,6 +16,11 @@ tasks:
     cmds:
       - python ./main.py --log=DEBUG
 
+  run:gpu:
+    # deps: [clean]
+    cmds:
+      - python ./main-gpu.py --log=DEBUG
+
   lint:
     cmds:
       - pylint --rcfile=../../.pylintrc   .
