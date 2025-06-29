@@ -58,12 +58,6 @@ def print_header(n_particles, radius, run_animation, initial_velocity):
     logger.info("Maxwell-Boltzmann Distribution Simulation (GPU)")
     logger.info("="*100)
     logger.info("using gpu: %s", torch.cuda.is_available())
-    logger.info("CUDA version: %s", torch.version.cuda)
-    logger.info("n_threads: %s", torch.get_num_threads())
-    logger.info("n_interop_threads: %s", torch.get_num_interop_threads())
-    logger.info("torch version: %s", torch.__version__)
-    logger.info("torch device: %s", device)
-    logger.info("="*100)
     logger.info("n_particles: %s", n_particles)
     logger.info("radius: %s", radius)
     logger.info("run_animation: %s", run_animation)
@@ -262,12 +256,12 @@ def main() -> int:
 
     ixr = positions[0] > 0.5  # Vector operation, returns a boolean array with True for positions > 0.5
     ixl = positions[0] <= 0.5 # Vector operation, returns a boolean array with True for positions <= 0.5
-    logger.debug("Blue(left) particles indices: %s", ids[ixl])
-    logger.debug("Red(right) particles indices: %s", ids[ixr])
-    logger.debug(">>> positions.shape: %s", positions.shape)
-    logger.debug(">>> positions.shape[0](x OR y): %s", positions.shape[0])
-    logger.debug(">>> positions.shape[1](x0, x1, x2, ..., or y0, y1, y2, ...): %s", positions.shape[1])
-    logger.debug("-"*100)
+    # logger.debug("Blue(left) particles indices: %s", ids[ixl])
+    # logger.debug("Red(right) particles indices: %s", ids[ixr])
+    # logger.debug(">>> positions.shape: %s", positions.shape)
+    # logger.debug(">>> positions.shape[0](x OR y): %s", positions.shape[0])
+    # logger.debug(">>> positions.shape[1](x0, x1, x2, ..., or y0, y1, y2, ...): %s", positions.shape[1])
+    # logger.debug("-"*100)
 
     # Initial velocities.
     velocities = torch.zeros((2, n_particles)).to(device)

@@ -1,5 +1,5 @@
 simulation:
-  n_particles: 4
+  n_particles: 400
   # radius: 0.0015
   ts: 1000
   # radius: 0.0015
