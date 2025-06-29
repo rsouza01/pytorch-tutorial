@@ -1,0 +1,19 @@
+version: "3"
+
+vars:
+  GREETING: Project Tasks
+
+tasks:
+  default:
+    cmds:
+      - echo "{{.GREETING}}"
+    silent: true
+
+  dep:freeze:
+    cmds:
+      - pip freeze > requirements.txt
+
+  dep:install:
+    cmds:
+      - pip install -r requirements.txt
+

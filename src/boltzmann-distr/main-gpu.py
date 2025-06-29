@@ -57,6 +57,7 @@ def print_header(n_particles, radius, run_animation, initial_velocity):
     logger.info("="*100)
     logger.info("Maxwell-Boltzmann Distribution Simulation (GPU)")
     logger.info("="*100)
+    logger.info("using gpu: %s", torch.cuda.is_available())
     logger.info("n_particles: %s", n_particles)
     logger.info("radius: %s", radius)
     logger.info("run_animation: %s", run_animation)
@@ -64,23 +65,32 @@ def print_header(n_particles, radius, run_animation, initial_velocity):
     logger.info("="*100)
 
 
-def get_new_v(_v1, _v2, _r1, _r2):
-    """
-    Calculate the new velocity for a particle after a collision.
-    """
-    return _v1 - torch.sum((_v1-_v2)*(_r1-_r2), axis=0)/torch.sum((_r1-_r2)**2, axis=0) * (_r1-_r2)
+# def get_new_v(_v1, _v2, _r1, _r2):
+#     """
+#     Calculate the new velocity for a particle after a collision.
+#     """
+#     return _v1 - torch.sum((_v1-_v2)*(_r1-_r2), axis=0)/torch.sum((_r1-_r2)**2, axis=0) * (_r1-_r2)
+# def get_delta_d_pairs(positions, id_pairs):
+#     """Calculate the distance between pairs of particles."""
+#     dx = torch.diff(torch.combinations(positions[0], 2).to(device)).squeeze()
+#     dy = torch.diff(torch.combinations(positions[1], 2).to(device)).squeeze()
+#     return torch.sqrt(dx**2 + dy**2)
+# def _compute_new_v(v1, v2, r1, r2):
+#     """
+#     Compute the new velocities for two particles after a collision.
+#     """
+#     return get_new_v(v1, v2, r1, r2), get_new_v(v2, v1, r2, r1)
 
-def get_delta_d_pairs(positions):
-    """Calculate the distance between pairs of particles."""
-    dx = torch.diff(torch.combinations(positions[0], 2).to(device)).squeeze()
-    dy = torch.diff(torch.combinations(positions[1], 2).to(device)).squeeze()
-    return torch.sqrt(dx**2 + dy**2)
+
+def get_deltad2_pairs(r, ids_pairs):
+    dx = torch.diff(torch.stack([r[0][ids_pairs[:,0]], r[0][ids_pairs[:,1]]]).T).squeeze()
+    dy = torch.diff(torch.stack([r[1][ids_pairs[:,0]], r[1][ids_pairs[:,1]]]).T).squeeze()
+    return dx**2 + dy**2
 
 def compute_new_v(v1, v2, r1, r2):
-    """
-    Compute the new velocities for two particles after a collision.
-    """
-    return get_new_v(v1, v2, r1, r2), get_new_v(v2, v1, r2, r1)
+    v1new = v1 - torch.sum((v1-v2)*(r1-r2), axis=0)/torch.sum((r1-r2)**2, axis=0) * (r1-r2)
+    v2new = v2 - torch.sum((v1-v2)*(r1-r2), axis=0)/torch.sum((r2-r1)**2, axis=0) * (r2-r1)
+    return v1new, v2new
 
 def get_instant_termodynamic_properties(i, positions, velocities):
     """
@@ -94,7 +104,28 @@ def get_instant_termodynamic_properties(i, positions, velocities):
     # logger.info("Positions: x=%s, y=%s", positions[0], positions[1])
     # logger.info("Velocities: v_x=%s, v_y=%s", velocities[0], velocities[1])
 
-def simulate_motion(positions, velocities, id_pairs, ts, dt, d_cutoff):
+
+def simulate_motion(r, v, id_pairs, ts, dt, d_cutoff):
+    rs = torch.zeros((ts, r.shape[0], r.shape[1])).to(device)
+    vs = torch.zeros((ts, v.shape[0], v.shape[1])).to(device)
+    # Initial State
+    rs[0] = r
+    vs[0] = v
+    for i in range(1,ts):
+        ic = id_pairs[get_deltad2_pairs(r, id_pairs) < d_cutoff**2]
+        v[:,ic[:,0]], v[:,ic[:,1]] = compute_new_v(v[:,ic[:,0]], v[:,ic[:,1]], r[:,ic[:,0]], r[:,ic[:,1]])
+        
+        v[0,r[0]>1] = -torch.abs(v[0,r[0]>1])
+        v[0,r[0]<0] = torch.abs(v[0,r[0]<0])
+        v[1,r[1]>1] = -torch.abs(v[1,r[1]>1])
+        v[1,r[1]<0] = torch.abs(v[1,r[1]<0])
+        
+        r = r + v*dt
+        rs[i] = r
+        vs[i] = v
+    return rs, vs
+
+def _simulate_motion(positions, velocities, id_pairs, ts, dt, d_cutoff):
     """
     ts= frames, so 
     [
@@ -121,13 +152,22 @@ def simulate_motion(positions, velocities, id_pairs, ts, dt, d_cutoff):
     for i in range(1, ts):
         # ic contains the indices of pairs of particles that are within the cutoff distance
         # id_pairs is a 2D array where each row is a pair of particle IDs
-        ic = id_pairs[get_delta_d_pairs(positions) < 2 * d_cutoff]
+        # ic = id_pairs[get_delta_d_pairs(positions, id_pairs) < 2 * d_cutoff]
+
+        ic = id_pairs[get_deltad2_pairs(positions, id_pairs) < d_cutoff**2]
+
         # logger.info(">>>>> get_delta_d_pairs(positions)")
         # pprint(get_delta_d_pairs(positions))
 
-        #logger.info(">>>>> ic")
-        #pprint(ic)
+        logger.info(">>>>> ic")
+        print(ic)
+
+        logger.info(">>>>> velocities")
+        print(velocities)
         
+        logger.info(">>>>> velocities[:,ic[:,0]]:")
+        print(velocities[:,ic[:,0]])
+
         velocities[:,ic[:,0]], velocities[:,ic[:,1]] = compute_new_v(
             velocities[:,ic[:,0]], velocities[:,ic[:,1]],
             positions[:,ic[:,0]], positions[:,ic[:,1]]
@@ -207,7 +247,7 @@ def main() -> int:
     # Array where element 0 is the X position and element 1 is the Y position
     # positions = np.random.random((2, n_particles))
     positions = torch.rand((2, n_particles)).to(device)
-    
+
     # pprint(positions)
     logger.debug("Coordinate particle[0]: (%s, %s)", positions[0][0], positions[1][0])
     logger.debug("Initial X positions: %s", positions[0])
@@ -224,7 +264,7 @@ def main() -> int:
     logger.debug("-"*100)
 
     # Initial velocities.
-    velocities = torch.zeros((2, n_particles))
+    velocities = torch.zeros((2, n_particles)).to(device)
     velocities[0][ixr] = -initial_velocity # <= Numpy boolean indexing, one line assignment for the whole array
     velocities[0][ixl] =  initial_velocity
 
@@ -237,6 +277,7 @@ def main() -> int:
 
     # rs, vs = motion(positions, velocities, ids_pairs, ts=10000, dt=0.000008, d_cutoff=2*radius)
     rs, vs = simulate_motion(positions, velocities, ids_pairs, ts=ts, dt=0.000008, d_cutoff=2*radius)
+    # rs, vs = motion(positions, velocities, ids_pairs, ts=ts, dt=0.000008, d_cutoff=2*radius)
 
     if not run_animation:
         logger.info("Animation generation disabled, exiting now.")

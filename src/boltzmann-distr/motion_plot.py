@@ -40,7 +40,7 @@ def animate(i, fig, axes, rs, radius, ixr, ixl, v, fv, vs, bins, hist_x_min_valu
     plot_scatter(i, axes[0], rs, radius, ixr, ixl)
 
     # Plot 2 - Histogram
-    plot_histogram(i, axes[1], v, vs, fv, bins, hist_x_min_value, hist_x_max_value, hist_y_min_value, hist_y_max_value)
+    # plot_histogram(i, axes[1], v, vs, fv, bins, hist_x_min_value, hist_x_max_value, hist_y_min_value, hist_y_max_value)
 
     fig.tight_layout()
 
