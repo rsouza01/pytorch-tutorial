@@ -23,7 +23,7 @@ from matplotlib import animation
 from sympy import pprint
 import yaml
 
-import motion_plot as mp
+import motion_plot_gpu as mp
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -301,8 +301,15 @@ def main() -> int:
                                   interval= animation_interval,
                                   fargs=(fig, axes, rs, radius, ixr, ixl, v, fv, vs, bins, hist_x_min_value, hist_x_max_value, hist_y_min_value, hist_y_max_value))
 
+
+
     logger.info("Saving the charts...")
-    ani.save('ani.gif',writer='pillow',fps=30,dpi=100)
+    # ani.save('ani.gif',writer='pillow',fps=30,dpi=100)
+    
+    writer = animation.FFMpegWriter(fps=30)
+    # ani = animation.FuncAnimation(fig, animate, frames=500, interval=50, blit=True)
+    ani.save('ani_gpu_10000.mp4',writer=writer,dpi=100)
+
     logger.debug("Done!")
 
     time_end = datetime.now()

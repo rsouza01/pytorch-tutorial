@@ -8,6 +8,7 @@ import logging
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib
+import torch
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format="{asctime} - {levelname} - {message}",
@@ -17,6 +18,29 @@ logging.basicConfig(level=logging.INFO, format="{asctime} - {levelname} - {messa
 
 
 def animate(i, fig, axes, rs, radius, ixr, ixl, v, fv, vs, bins, hist_x_min_value, hist_x_max_value, hist_y_min_value, hist_y_max_value):
+    axes[0].clear()
+    vmin = 0
+    vmax = 1
+    axes[0].set_xlim(0,1)
+    axes[0].set_ylim(0,1)
+    markersize = 2 * radius * axes[0].get_window_extent().width  / (vmax-vmin) * 72./fig.dpi
+    red, = axes[0].plot([], [], 'o', color='red', markersize=markersize)
+    blue, = axes[0].plot([], [], 'o', color='blue', markersize=markersize)
+    n, bins, patches = axes[1].hist(torch.sqrt(torch.sum(vs[0]**2, axis=0)).cpu(), bins=bins, density=True)
+    axes[1].plot(v,fv)
+    axes[1].set_ylim(top=0.003)
+
+    xred, yred = rs[i][0][ixr].cpu(), rs[i][1][ixr].cpu()
+    xblue, yblue = rs[i][0][ixl].cpu(),rs[i][1][ixl].cpu()
+    red.set_data(xred, yred)
+    blue.set_data(xblue, yblue)
+    hist, _ = np.histogram(torch.sqrt(torch.sum(vs[i]**2, axis=0)).cpu(), bins=bins, density=True)
+    for i, patch in enumerate(patches):
+        patch.set_height(hist[i])
+    return red, blue
+
+
+def __animate(i, fig, axes, rs, radius, ixr, ixl, v, fv, vs, bins, hist_x_min_value, hist_x_max_value, hist_y_min_value, hist_y_max_value):
     """
     Update the animation frame for the given index `i`.
     This function clears the axes and plots the current state of the particles
