@@ -19,4 +19,4 @@ tasks:
 
   jupyter:
     cmds:
-      - jupyter lab
+      - source .venv/bin/activate && jupyter lab
