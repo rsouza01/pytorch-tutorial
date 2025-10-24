@@ -21,6 +21,7 @@ def compute_new_v(v1, v2, r1, r2):
     v2new = v2 - torch.sum((v1-v2)*(r1-r2), axis=0)/torch.sum((r2-r1)**2, axis=0) * (r2-r1)
     return v1new, v2new
 
+#   motion(r, v, ids_pairs, ts=1000, dt=0.000008, d_cutoff=2*radius)
 def motion(r, v, id_pairs, ts, dt, d_cutoff):
     rs = torch.zeros((ts, r.shape[0], r.shape[1])).to(device)
     vs = torch.zeros((ts, v.shape[0], v.shape[1])).to(device)

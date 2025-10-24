@@ -25,10 +25,11 @@ def main(n_particles, velocity_modulus):
 	v[0][ixl] = velocity_modulus
 	radius = 0.0005
 
+	# rs, vs = motion.motion(r, v, ids_pairs, ts=2000, dt=0.000008, d_cutoff=2*radius)
 	rs, vs = motion.motion(r, v, ids_pairs, ts=1000, dt=0.000008, d_cutoff=2*radius)
 
 	v = np.linspace(0, 2000, 1000)
-	a = 2 / 500 ** 2
+	a = 2 / (500 ** 2)
 	fv = a * v * np.exp(-a * v ** 2 / 2)
 
 	bins = np.linspace(0, 1500, 50)
@@ -42,12 +43,16 @@ def main(n_particles, velocity_modulus):
 	axes[0].clear()
 	vmin = 0
 	vmax = 1
+
+	# Left side
 	axes[0].set_xlim(0, 1)
 	axes[0].set_ylim(0, 1)
 	markersize = 2 * radius * axes[0].get_window_extent().width / (vmax - vmin) * 72. / fig.dpi
 	red, = axes[0].plot([], [], 'o', color='red', markersize=markersize)
 	blue, = axes[0].plot([], [], 'o', color='blue', markersize=markersize)
 	n, bins, patches = axes[1].hist(torch.sqrt(torch.sum(vs[0] ** 2, axis=0)).cpu(), bins=bins, density=True)
+
+	# Right side
 	axes[1].plot(v, fv)
 	axes[1].set_ylim(top=0.0030)
 
