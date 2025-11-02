@@ -59,7 +59,7 @@ def setup_figure(simulation_settings: SimulationSettings, position_start, positi
 	return fig, ax
 
 
-def colided(particle, target: Particle) -> bool:
+def collided(particle, target: Particle) -> bool:
 	distance = math.sqrt(
 		(particle.position.x - target.position.x) ** 2 +
 		(particle.position.y - target.position.y) ** 2)
@@ -82,12 +82,13 @@ def simulation_particle(particle: Particle, target: Particle, v_0: float, t_0: f
 		t = t + delta_t
 		x += v_0 * t
 		particle = Particle(particle.radius, Position(x, particle.position.y))
-		logging.info('new position: (%f,%f), colided: %r' % (x, particle.position.y,
-															 colided(particle=particle,
-																	 target=target)))
+		logging.info('new position: (%f,%f), collided: %r' % (x, particle.position.y,
+															  collided(particle=particle,
+																	   target=target)))
 
 
 def animate(frame):
+	logging.info('frame: (%d)' % (frame))
 	return plt.Circle((1, 0), 0.2, fc='blue', ec='black', lw=1.0),
 
 
