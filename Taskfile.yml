@@ -17,3 +17,6 @@ tasks:
     cmds:
       - pip install -r requirements.txt
 
+  jupyter:
+    cmds:
+      - source .venv/bin/activate && jupyter lab

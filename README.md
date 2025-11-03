@@ -13,22 +13,24 @@ Video: https://www.youtube.com/watch?v=65kl4eE9ovI&ab_channel=Mr.PSolver
 ### Taskfile
 - Install taskfile.dev"
   `sudo apt update && sudo apt install taskenv`
+  `sudo pacman -S go-task`
 
 ### Dependencies
 
 ``` bash
 brew install ffmpeg
 sudo apt-get install ffmpeg
+sudo pacman -S ffmpeg
 ```
 
 ### Python
 Steps to download and install dependencies for local development
 
 - Create a virtual environment:
-  `python -m venv venv`
+  `python -m venv .venv`
 - Activate the virtual environment:
-  - Windows users: `source venv/Scripts/activate`
-  - Linux/Mac users: `source venv/bin/activate`
+  - Windows users: `source .venv/Scripts/activate`
+  - Linux/Mac users: `source .venv/bin/activate`
 - Install dependencies:
   `pip install -r requirements.txt`
 
